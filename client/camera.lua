@@ -27,7 +27,6 @@ local fov = (fov_max+fov_min)*0.5
 local new_z
 local movcamera
 local newscamera
-local isLoggedIn = LocalPlayer.state.isLoggedIn
 
 --FUNCTIONS--
 local function HideHUDThisFrame()
@@ -102,16 +101,17 @@ RegisterNetEvent('qbx_newsjob:client:toggleCam', function()
         lib.requestModel(camModel, 5000)
         local plyCoords = GetOffsetFromEntityInWorldCoords(cache.ped, 0.0, 0.0, -5.0)
         local camspawned = CreateObject(camModel, plyCoords.x, plyCoords.y, plyCoords.z, true, true, true)
+        SetModelAsNoLongerNeeded(camModel)
         Wait(1000)
         local netid = ObjToNet(camspawned)
         SetNetworkIdExistsOnAllMachines(netid, true)
         NetworkSetNetworkIdDynamic(netid, true)
         SetNetworkIdCanMigrate(netid, false)
         AttachEntityToEntity(camspawned, cache.ped, GetPedBoneIndex(cache.ped, 28422), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, true, true, false, true, 0, true)
-        TaskPlayAnim(cache.ped, camanimDict, camanimName, 1.0, -1, -1, 50, 0, false, false, false)
+        lib.playAnim(cache.ped, camanimDict, camanimName, 1.0, -1, -1, 50, 0, false, false, false)
         cam_net = netid
         holdingCam = true
-		lib.showTextUI(Lang:t('info.weazle_overlay'))
+		lib.showTextUI(locale('info.weazle_overlay'))
     else
 		lib.hideTextUI()
         ClearPedSecondaryTask(cache.ped)
@@ -124,14 +124,14 @@ end)
 
 CreateThread(function()
 	while true do
-		if not isLoggedIn then return end
-		if QBX.PlayerData.job.name == 'reporter' then
+		if QBX.PlayerData.job?.name == 'reporter' then
 			if holdingCam then
 				lib.requestAnimDict(camanimDict, 5000)
 
 				if not IsEntityPlayingAnim(cache.ped, camanimDict, camanimName, 3) then
 					TaskPlayAnim(cache.ped, camanimDict, camanimName, 1.0, -1, -1, 50, 0, false, false, false)
 				end
+                RemoveAnimDict(camanimDict)
 
 				DisablePlayerFiring(cache.playerId, true)
 				DisableControlAction(0,25, true)
@@ -154,8 +154,7 @@ end)
 
 CreateThread(function()
 	while true do
-		if not isLoggedIn then return end
-		if QBX.PlayerData.job.name == 'reporter' then
+		if QBX.PlayerData.job?.name == 'reporter' then
 			if holdingCam then
 				if IsControlJustReleased(1, 244) then
 					movcamera = true
@@ -234,8 +233,7 @@ end)
 
 CreateThread(function()
 	while true do
-		if not isLoggedIn then return end
-		if QBX.PlayerData.job.name == 'reporter' then
+		if QBX.PlayerData.job?.name == 'reporter' then
 			if holdingCam then
 				if IsControlJustReleased(1, 38) then
 					newscamera = true
@@ -252,9 +250,9 @@ CreateThread(function()
 					end
 					local vehicle = cache.vehicle
 					local cam2 = CreateCam('DEFAULT_SCRIPTED_FLY_CAMERA', true)
-					local msg = Lang:t('info.title_breaking_news')
-					local bottom = Lang:t('info.bottom_breaking_news')
-					local title = Lang:t('info.breaking_news')
+					local msg = locale('info.title_breaking_news')
+					local bottom = locale('info.bottom_breaking_news')
+					local title = locale('info.breaking_news')
 					AttachCamToEntity(cam2, cache.ped, 0.0,0.0,1.0, true)
 					SetCamRot(cam2, 2.0,1.0,GetEntityHeading(cache.ped), 0)
 					SetCamFov(cam2, fov)
@@ -334,13 +332,14 @@ RegisterNetEvent('qbx_newsjob:client:toggleBMic', function()
         lib.requestModel(bmicModel, 5000)
         local plyCoords = GetOffsetFromEntityInWorldCoords(cache.ped, 0.0, 0.0, -5.0)
         local bmicspawned = CreateObject(bmicModel, plyCoords.x, plyCoords.y, plyCoords.z, true, true, false)
+        SetModelAsNoLongerNeeded(bmicModel)
         Wait(1000)
         local netid = ObjToNet(bmicspawned)
         SetNetworkIdExistsOnAllMachines(netid, true)
         NetworkSetNetworkIdDynamic(netid, true)
         SetNetworkIdCanMigrate(netid, false)
         AttachEntityToEntity(bmicspawned, cache.ped, GetPedBoneIndex(cache.ped, 28422), -0.08, 0.0, 0.0, 0.0, 0.0, 0.0, true, true, false, true, 0, true)
-        TaskPlayAnim(cache.ped, bmicanimDict, bmicanimName, 1.0, -1, -1, 50, 0, false, false, false)
+        lib.playAnim(cache.ped, bmicanimDict, bmicanimName, 1.0, -1, -1, 50, 0, false, false, false)
         bmic_net = netid
         holdingBmic = true
     else
@@ -354,13 +353,13 @@ end)
 
 CreateThread(function()
 	while true do
-		if not isLoggedIn then return end
-		if QBX.PlayerData.job.name == 'reporter' then
+		if QBX.PlayerData.job?.name == 'reporter' then
 			if holdingBmic then
 				lib.requestAnimDict(bmicanimDict, 5000)
 				if not IsEntityPlayingAnim(cache.ped, bmicanimDict, bmicanimName, 3) then
 					TaskPlayAnim(cache.ped, bmicanimDict, bmicanimName, 1.0, -1, -1, 50, 0, false, false, false)
 				end
+                RemoveAnimDict(bmicanimDict)
 				DisablePlayerFiring(cache.playerId, true)
 				DisableControlAction(0,25, true)
 				DisableControlAction(0, 44, true)
@@ -398,16 +397,16 @@ end)
 RegisterNetEvent('qbx_newsjob:client:toggleMic', function()
     if not holdingMic then
         lib.requestModel(micModel, 5000)
-	lib.requestAnimDict(micanimDict, 5000)
         local plyCoords = GetOffsetFromEntityInWorldCoords(cache.ped, 0.0, 0.0, -5.0)
         local micspawned = CreateObject(micModel, plyCoords.x, plyCoords.y, plyCoords.z, true, true, true)
+        SetModelAsNoLongerNeeded(micModel)
         Wait(1000)
         local netid = ObjToNet(micspawned)
         SetNetworkIdExistsOnAllMachines(netid, true)
         NetworkSetNetworkIdDynamic(netid, true)
         SetNetworkIdCanMigrate(netid, false)
         AttachEntityToEntity(micspawned, cache.ped, GetPedBoneIndex(cache.ped, 60309), 0.055, 0.05, 0.0, 240.0, 0.0, 0.0, true, true, false, true, 0, true)
-        TaskPlayAnim(cache.ped, micanimDict, micanimName, 1.0, -1, -1, 50, 0, false, false, false)
+        lib.playAnim(cache.ped, micanimDict, micanimName, 1.0, -1, -1, 50, 0, false, false, false)
         mic_net = netid
         holdingMic = true
     else
